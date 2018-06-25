@@ -152,7 +152,7 @@ class UI {
 		this.$gameContent.css('box-shadow', 'inset ' + colour + ' 0 0 80px');
 	}
 
-	showGameOver(victory) {
+	showGameOver(victory, score) {
 		// Fade the exterior border to white.
 		this.setGameGlowBorder('white');
 
@@ -164,7 +164,7 @@ class UI {
 				this.$gameOverTitle.text('You ran out of lives.');
 
 			// Show score information from header bar.
-			this.$gameOverRounds.text(this.$scoreRounds.text() - 1);
+			this.$gameOverRounds.text(score);
 			this.$gameOverAccuracy.text(this.$scoreAccuracy.text());
 
 			// Enable the replay button.

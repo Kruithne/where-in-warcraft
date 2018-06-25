@@ -17,6 +17,7 @@ class GameState {
 
 		this.playerLives = MAX_LIVES;
 		this.playerGuesses = [];
+		this.playerPoints = 0;
 
 		this.isAlive = true;
 
@@ -85,10 +86,10 @@ class GameState {
 				this.ui.$buttonSubmitGuess.show();
 
 			} else {
-				this.ui.showGameOver(true);
+				this.ui.showGameOver(true, this.playerPoints);
 			}
 		} else {
-			this.ui.showGameOver(false);
+			this.ui.showGameOver(false, this.playerPoints);
 		}
 	}
 
@@ -114,6 +115,9 @@ class GameState {
 
 				this.ui.setGameGlowBorder('green');
 			}
+
+			// Increment the players score.
+			this.playerPoints++;
 		} else {
 			distFactor = 0;
 			this.removeLife();
