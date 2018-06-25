@@ -53,6 +53,10 @@ class UI {
 		console.log(JSON.stringify(e.latlng));
 
 		if (this._isMapEnabled) {
+			// Remove existing marker.
+			if (this.mapMarker)
+				this.mapMarker.remove();
+
 			this.mapMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(this.map);
 			this.$buttonSubmitGuess.enable();
 		}
