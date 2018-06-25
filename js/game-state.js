@@ -3,7 +3,6 @@ class GameState {
 		this.ui = ui;
 		this.panorama = panorama;
 		this.availableLocations = [];
-		this.reset();
 	}
 
 	addLocation(location) {
@@ -29,6 +28,7 @@ class GameState {
 	}
 
 	startGame() {
+		this.reset();
 		this.ui.enterGame(() => this.nextRound());
 	}
 
