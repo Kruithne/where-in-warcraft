@@ -117,7 +117,7 @@ class GameState {
 			this.removeLife();
 
 			circleColour = 'red';
-			this.ui.showMapPath(this.currentLocation, circleColour);
+			this.ui.showMapPath(this.currentLocation, choice, circleColour);
 			this.ui.setGameGlowBorder('red');
 		}
 
