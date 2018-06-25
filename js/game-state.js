@@ -126,7 +126,7 @@ class GameState {
 		this.playerGuesses.push(distPct);
 
 		// Show a circle where the actual answer was.
-		this.ui.showMapCircle(target, circleColour, circleRadius);
+		this.ui.showMapCircle(this.currentLocation, circleColour, circleRadius);
 
 		// Hide the 'Submit guess' and 'View Location' buttons.
 		this.ui.$buttonSubmitGuess.hide();
