@@ -171,7 +171,7 @@ class UI {
 			this.$buttonReplay.enable();
 
 			// Show the spirit healer graphic.
-			this.$gameOverSpirit.loadBackgroundSmooth();
+			this.$gameOverSpirit.css('display', 'block').loadBackgroundSmooth();
 
 			// Show the game over screen.
 			this.$gameOver.fadeInFlex();
