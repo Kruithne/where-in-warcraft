@@ -1,0 +1,9 @@
+# Minified CSS/JS
+*.css
+*.min.js
+
+# IntelliJ settings
+.idea
+
+# Location config file.
+locations.json
