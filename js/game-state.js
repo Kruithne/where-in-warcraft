@@ -1,3 +1,5 @@
+const MAX_LIVES = 3;
+
 class GameState {
 	constructor(ui, panorama) {
 		this.ui = ui;
@@ -13,7 +15,7 @@ class GameState {
 		this.currentRound = 0;
 		this.currentLocation = null;
 
-		this.playerLives = GameState.MAX_LIVES;
+		this.playerLives = MAX_LIVES;
 		this.playerGuesses = [];
 
 		this.isAlive = true;
@@ -151,9 +153,5 @@ class GameState {
 			sum += guess;
 
 		return Math.ceil(sum / this.playerGuesses.length);
-	}
-
-	static MAX_LIVES() {
-		return 3;
 	}
 }
