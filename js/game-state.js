@@ -37,8 +37,8 @@ class GameState {
 		this.ui.setGameGlowBorder('transparent');
 
 		// Hide the game over frame.
-		ui.$gameOverSpirit.css('opacity', 0);
-		ui.$gameOver.fadeOut(400, () => {
+		this.ui.$gameOverSpirit.css('opacity', 0);
+		this.ui.$gameOver.fadeOut(400, () => {
 			// Reset the game state.
 			this.reset();
 
