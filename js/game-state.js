@@ -92,7 +92,7 @@ class GameState {
 
 	processGuess() {
 		// Disable the map, preventing further input.
-		ui.disableMap();
+		this.ui.disableMap();
 
 		// Calculate the player's accuracy.
 		let choice = this.ui.mapMarker.getLatLng();
