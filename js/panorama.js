@@ -37,10 +37,13 @@ class Panorama {
 
 		// Re-cache slice elements.
 		this.slices = $('.slice');
+
+		// Update slice rendering.
+		this._updateRendering();
 	}
 
 	_init() {
-		this.ui.$gameImage.on('mousedown, touchstart', (e) => this._onMouseDown(e));
+		this.ui.$gameImage.on('mousedown touchstart', (e) => this._onMouseDown(e));
 
 		$(window).on('resize', () => this._updateRendering());
 		$(document)
@@ -51,7 +54,7 @@ class Panorama {
 	_onMouseMove(e) {
 		if (this.isDragging) {
 			let touchX = e.clientX || e.touches[0].clientX;
-			let offset = restrictPanoramaBounds(this.offset + (touchX - this.anchor));
+			let offset = this._restrictBounds(this.offset + (touchX - this.anchor));
 			this.slices.css('transform', 'translateX(' + (offset) + 'px)');
 			e.preventDefault();
 		}
@@ -68,12 +71,13 @@ class Panorama {
 			let touchX = e.clientX || e.changedTouches[0].clientX;
 
 			this.isDragging = false;
-			this.offset = restrictPanoramaBounds(this.offset + (touchX - this.anchor));
+			this.offset = this._restrictBounds(this.offset + (touchX - this.anchor));
 			e.preventDefault();
 		}
 	}
 
 	_updateRendering() {
+		let state = this;
 		this.bounds = -this.ui.$gameImage.width();
 
 		this.slices.each(function() {
@@ -81,7 +85,7 @@ class Panorama {
 			let width = Math.ceil(SLICE_WIDTH * (slice.height() / PANORAMA_HEIGHT));
 
 			slice.width(width);
-			this.bounds += width;
+			state.bounds += width;
 		});
 
 		this.offset = this._restrictBounds(this.offset);
