@@ -62,6 +62,15 @@ class UI {
 		}
 	}
 
+	panMap(location) {
+		this.map.panTo([
+			location.lat, location.lng
+		], {
+			duration: 1,
+			easeLinearity: 0.1
+		});
+	}
+
 	showMapPath(pointA, pointB, colour) {
 		if (this.mapPath)
 			this.mapPath.remove();

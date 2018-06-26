@@ -131,8 +131,9 @@ class GameState {
 		let distPct = distFactor * 100;
 		this.playerGuesses.push(distPct);
 
-		// Show a circle where the actual answer was.
+		// Show a circle where the actual answer was and pan to it.
 		this.ui.showMapCircle(this.currentLocation, circleColour, circleRadius);
+		this.ui.panMap(this.currentLocation);
 
 		// Hide the 'Submit guess' and 'View Location' buttons.
 		this.ui.$buttonSubmitGuess.hide();
