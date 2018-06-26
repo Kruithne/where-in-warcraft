@@ -27,12 +27,14 @@ $(() => {
 		async: true,
 		dataType: 'json',
 		success: (res) => {
-			if (res.hasOwnProperty('locations')) {
-				for (let location of res.locations)
+			for (let zone of res.zones) {
+				for (let location of zone.locations) {
+					location.zone = zone.name;
 					state.addLocation(location);
-
-				ui.enablePlay();
+				}
 			}
+
+			ui.enablePlay();
 		}
 	});
 });

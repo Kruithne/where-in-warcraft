@@ -127,6 +127,9 @@ class GameState {
 			this.ui.setGameGlowBorder('red');
 		}
 
+		// Set the zone information on the map.
+		this.ui.setMapInfo(this.currentLocation.zone, this.currentLocation.name);
+
 		// Convert the factor into a 0-100 percentage and store it.
 		let distPct = distFactor * 100;
 		this.playerGuesses.push(distPct);

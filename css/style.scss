@@ -267,6 +267,18 @@ body {
 				#game-button-next {
 					display: none;
 				}
+
+				#game-map-info {
+					position: absolute;
+					left: 0;
+					right: 0;
+					bottom: 15px;
+					text-align: center;
+					font-size: 2rem;
+					color: white;
+					text-shadow: black 0 0 20px;
+					z-index: 500;
+				}
 			}
 
 			#game-over-spirit {

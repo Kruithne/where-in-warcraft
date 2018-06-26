@@ -27,6 +27,9 @@ class UI {
 		this.$scoreAccuracy = $('#game-score-accuracy').children('.value');
 		this.$scoreLives = $('#game-score-lives').children('.value');
 
+		// Game map info.
+		this.$infoZone = $('#game-map-info');
+
 		// Button elements.
 		this.$buttonViewMap = $('#game-button-map');
 		this.$buttonViewLocation = $('#game-button-location');
@@ -102,6 +105,8 @@ class UI {
 
 		if (this.mapCircle)
 			this.mapCircle.remove();
+
+		this.$infoZone.hide();
 	}
 
 	enableMap() {
@@ -136,6 +141,10 @@ class UI {
 
 		// Fade in the panorama frame.
 		this.$gameImage.css({ opacity: 1 });
+	}
+
+	setMapInfo(zone, name) {
+		this.$infoZone.text(zone + ' - ' + name).fadeIn();
 	}
 
 	enablePlay() {
