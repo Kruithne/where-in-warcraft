@@ -2,8 +2,6 @@ const PANORAMA_WIDTH = 4901;
 const PANORAMA_HEIGHT = 615;
 const SLICE_COUNT = 13;
 const SLICE_WIDTH = PANORAMA_WIDTH / SLICE_COUNT;
-const GUESS_THRESHOLD = 2;
-const BOD_RADIUS = 0.8;
 
 class Panorama {
 	constructor(ui) {

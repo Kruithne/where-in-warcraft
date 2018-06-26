@@ -1,4 +1,6 @@
 const MAX_LIVES = 3;
+const GUESS_THRESHOLD = 2;
+const BOD_RADIUS = 0.8;
 
 class GameState {
 	constructor(ui, panorama) {
