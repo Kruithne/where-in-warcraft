@@ -57,12 +57,14 @@ class GameState {
 	}
 
 	nextRound() {
-		this.currentRound++;
-		this.ui.$scoreRounds.text(this.currentRound);
 		this.ui.$scoreAccuracy.text(this.playerAccuracy);
 
 		if (this.isAlive) {
 			if (this.locationPool.length > 0) {
+				// Update the player score information.
+				this.currentRound++;
+				this.ui.$scoreRounds.text(this.currentRound);
+
 				// Select the next location from the pool.
 				let locationIndex = Math.floor(Math.random() * this.locationPool.length);
 				this.currentLocation = this.locationPool.splice(locationIndex, 1)[0];
