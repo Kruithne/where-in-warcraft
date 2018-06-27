@@ -21,6 +21,9 @@ $(() => {
 	ui.$buttonReplay.onButtonClick(() => state.restartGame());
 	ui.$buttonSubmitGuess.onButtonClick(() => state.processGuess());
 
+	// Preload loading graphic.
+	Util.loadImage('images/zeppy.png');
+
 	// Asynchronously load location data from server.
 	$.ajax({
 		url: 'locations.json',

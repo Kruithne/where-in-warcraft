@@ -14,6 +14,7 @@ class UI {
 		this.$gameContent = $('#game-content');
 		this.$gameImage = $('#game-image');
 		this.$gameMap = $('#game-map');
+		this.$gameCanvas = $('#game-drag-inner');
 
 		// Game-over frame elements.
 		this.$gameOver = $('#game-over');
