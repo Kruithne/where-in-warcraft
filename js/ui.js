@@ -47,7 +47,9 @@ class UI {
 		this.map = L.map('game-map', {
 			attributionControl: false,
 			crs: L.CRS.Simple
-		}).setView([-120.90349875311426, 124.75], 2);
+		});
+
+		this.resetMapZoom();
 
 		L.tileLayer('images/tiles/{z}/{x}/{y}.png', { maxZoom: 6, }).addTo(this.map);
 		this.map.on('click', (e) => this._onMapClick(e));
@@ -64,6 +66,10 @@ class UI {
 			this.mapMarker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(this.map);
 			this.$buttonSubmitGuess.enable();
 		}
+	}
+
+	resetMapZoom() {
+		this.map.setView([-120.90349875311426, 124.75], 2);
 	}
 
 	panMap(location) {

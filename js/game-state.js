@@ -78,6 +78,7 @@ class GameState {
 				// Hide/clear the guess map.
 				this.ui.hideMap();
 				this.ui.clearMap();
+				this.ui.resetMapZoom();
 
 				// Enable the map, allowing users to place a marker.
 				this.ui.enableMap();
