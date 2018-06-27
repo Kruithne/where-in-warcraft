@@ -64,7 +64,7 @@ class GameState {
 		if (this.isAlive) {
 			if (this.locationPool.length > 0) {
 				// Select the next location from the pool.
-				let locationIndex = this.locationPool[Math.floor(Math.random() * this.locationPool.length)];
+				let locationIndex = Math.floor(Math.random() * this.locationPool.length);
 				this.currentLocation = this.locationPool.splice(locationIndex, 1)[0];
 
 				// Set the panorama to the new location.
