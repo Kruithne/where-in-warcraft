@@ -88,7 +88,7 @@ class GameState {
 
 				// Show the 'View-location' and 'Submit guess' buttons.
 				this.ui.$buttonViewLocation.show();
-				this.ui.$buttonSubmitGuess.show();
+				this.ui.$buttonSubmitGuess.show().disable();
 
 			} else {
 				this.ui.showGameOver(true, this.playerPoints);

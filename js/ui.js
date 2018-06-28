@@ -104,14 +104,20 @@ class UI {
 	}
 
 	clearMap() {
-		if (this.mapMarker)
+		if (this.mapMarker) {
 			this.mapMarker.remove();
+			this.mapMarker = null;
+		}
 
-		if (this.mapPath)
+		if (this.mapPath) {
 			this.mapPath.remove();
+			this.mapPath = null;
+		}
 
-		if (this.mapCircle)
+		if (this.mapCircle) {
 			this.mapCircle.remove();
+			this.mapCircle = null;
+		}
 
 		this.$infoZone.hide();
 	}
