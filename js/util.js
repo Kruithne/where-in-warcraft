@@ -28,9 +28,10 @@ jQuery.fn.extend({
 		return this.on('click', (e) => {
 			if (!this.isDisabled()) {
 				this.disable();
-				e.stopPropagation();
 				callback();
 			}
+
+			e.stopPropagation();
 		});
 	},
 
