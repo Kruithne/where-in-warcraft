@@ -25,7 +25,7 @@ jQuery.fn.extend({
 	},
 
 	onButtonClick: function(callback) {
-		return this.on('click', (e) => {
+		return this.on('click touchstart', (e) => {
 			if (!this.isDisabled()) {
 				this.disable();
 				callback();
