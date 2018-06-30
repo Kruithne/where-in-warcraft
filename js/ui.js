@@ -51,7 +51,7 @@ class UI {
 
 		this.resetMapZoom();
 
-		L.tileLayer('images/tiles/{z}/{x}/{y}.png', { maxZoom: 6, }).addTo(this.map);
+		L.tileLayer('images/tiles/{z}/{x}/{y}.png', { maxZoom: 7, }).addTo(this.map);
 		this.map.on('click', (e) => this._onMapClick(e));
 	}
 
