@@ -112,7 +112,7 @@ body {
 			text-shadow: black 0 0 20px;
 			font-size: 2em;
 
-			#btn-play {
+			#btn-play, #btn-play-classic {
 				margin-top: 5px;
 			}
 
@@ -335,6 +335,15 @@ body {
 
 				#game-over-buttons {
 					margin-top: 25px;
+				}
+				
+				#game-over-twitter {
+					margin-top: 15px;
+
+					a {
+						text-decoration: none;
+						color: #55a3f4;
+					}
 				}
 			}
 

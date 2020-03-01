@@ -38,25 +38,30 @@ class UI {
 		this.$buttonNextRound = $('#game-button-next');
 		this.$buttonReplay = $('#game-button-replay');
 		this.$buttonPlay = $('#btn-play');
+		this.$buttonPlayClassic = $('#btn-play-classic');
 
 		// Asynchronously load smooth background images.
 		$('.smooth').each(function() { $(this).loadBackgroundSmooth() });
 	}
 
-	_initializeMap() {
+	_initializeMap(isClassic) {
 		this.map = L.map('game-map', {
 			attributionControl: false,
 			crs: L.CRS.Simple
 		});
 
 		this.resetMapZoom();
+		this.isClassic = isClassic;
 
-		L.tileLayer('images/tiles/{z}/{x}/{y}.png', { maxZoom: 7, }).addTo(this.map);
+		const dir = isClassic ? 'tiles_classic' : 'tiles';
+		L.tileLayer('images/' + dir + '/{z}/{x}/{y}.png', { maxZoom: isClassic ? 6 : 7, }).addTo(this.map);
 		this.map.on('click', (e) => this._onMapClick(e));
 	}
 
 	_onMapClick(e) {
-		console.log(JSON.stringify(e.latlng));
+		const dbg = JSON.stringify(e.latlng);
+		console.log(dbg);
+		//console.log(this.map.project(e.latlng, 7));
 
 		if (this._isMapEnabled) {
 			// Remove existing marker.
@@ -160,11 +165,7 @@ class UI {
 		this.$infoZone.text(zone + ' - ' + name).fadeIn();
 	}
 
-	enablePlay() {
-		this.$buttonPlay.enable();
-	}
-
-	enterGame(callback) {
+	enterGame(isClassic, callback) {
 		this.$gameIntro.fadeOut(UI_ANIM_SPEED, () => {
 			// Show the containing frame
 			this.$gameFrame.show();
@@ -176,7 +177,7 @@ class UI {
 			this.$gameContent.fadeInFlex(UI_ANIM_SPEED);
 
 			// Initialize the guess map.
-			this._initializeMap();
+			this._initializeMap(isClassic);
 
 			// Invoke callback.
 			callback();

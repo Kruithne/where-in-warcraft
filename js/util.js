@@ -25,13 +25,13 @@ jQuery.fn.extend({
 	},
 
 	onButtonClick: function(callback) {
-		return this.on('click touchstart', (e) => {
+		return this.on('mousedown touchstart', (e) => {
 			if (!this.isDisabled()) {
 				this.disable();
 				callback();
 			}
 
-			e.stopPropagation();
+			return false;
 		});
 	},
 

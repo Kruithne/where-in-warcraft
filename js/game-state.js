@@ -1,5 +1,5 @@
 const MAX_LIVES = 3;
-const GUESS_THRESHOLD = 2;
+const GUESS_THRESHOLD = 2.4;
 const BOD_RADIUS = 0.8;
 
 class GameState {
@@ -32,9 +32,9 @@ class GameState {
 		this.ui.$scoreAccuracy.text(this.playerAccuracy);
 	}
 
-	startGame() {
+	startGame(isClassic) {
 		this.reset();
-		this.ui.enterGame(() => this.nextRound());
+		this.ui.enterGame(isClassic, () => this.nextRound());
 	}
 
 	restartGame() {
@@ -115,7 +115,7 @@ class GameState {
 				circleColour = 'yellow';
 			} else {
 				circleColour = 'green';
-				circleRadius = 1 - BOD_RADIUS;
+				circleRadius = BOD_RADIUS;
 				distFactor = 1;
 
 				this.ui.setGameGlowBorder('green');

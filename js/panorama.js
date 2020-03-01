@@ -1,6 +1,7 @@
 class Panorama {
 	constructor(ui) {
 		this.ui = ui;
+		this.isClassic = false;
 
 		this.offset = 0;
 		this.anchor = 0;
@@ -9,10 +10,15 @@ class Panorama {
 		this._init();
 	}
 
+	setMode(isClassic) {
+		this.isClassic = isClassic;
+	}
+
 	setLocation(id) {
 		// Load the panorama for this location.
+		const dir = this.isClassic ? 'locations_classic' : 'locations';
 		this.ui.$gameCanvas.css({ opacity: 0 });
-		this.ui.$gameCanvas.loadBackgroundSmooth('images/locations/' + id + '.jpg');
+		this.ui.$gameCanvas.loadBackgroundSmooth('images/' + dir + '/' + id + '.jpg');
 	}
 
 	_init() {

@@ -1,0 +1,4 @@
+# images/tiles/
+# This directory contains automatically rendered tiles of the map for the Classic version.
+*
+!.gitignore
