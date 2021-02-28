@@ -540,6 +540,8 @@ class UI {
 			this.$gameOverRounds.textContent = score;
 			this.$gameOverAccuracy.textContent = this.$scoreAccuracy.textContent;
 
+			this.$buttonReplay.classList.remove('disabled');
+
 			this.$buttonSendScore.classList.remove('disabled');
 			this.$buttonSubmitScore.textContent = 'Submit Score';
 			if (score > 0)
