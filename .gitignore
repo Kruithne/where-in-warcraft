@@ -2,9 +2,14 @@
 *.css
 *.min.js
 
-# IntelliJ settings
-.idea
+# DB Config
+engine/db.conf
 
-# Location config file.
-locations.json
-locations_classic.json
+# Secret
+/banana/
+
+# VSCode
+.vscode
+
+# https://github.com/Kruithne/KrameWork7
+KrameWork
