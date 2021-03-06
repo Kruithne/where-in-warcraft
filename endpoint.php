@@ -27,16 +27,16 @@
 
 	function getRandomLocation($token, $isClassic) {
 		if ($isClassic)
-			return getDatabase()->getRow('SELECT l.`ID` FROM `locations_classic` AS l WHERE NOT EXISTS (SELECT * FROM `guesses` AS g WHERE g.`token` = ? AND g.`locationID` = l.`ID`) ORDER BY RAND() LIMIT 1', [$token]);
+			return getDatabase()->getRow('SELECT l.`ID` FROM `locations_classic` AS l WHERE `enabled` = 1 AND NOT EXISTS (SELECT * FROM `guesses` AS g WHERE g.`token` = ? AND g.`locationID` = l.`ID`) ORDER BY RAND() LIMIT 1', [$token]);
 
-		return getDatabase()->getRow('SELECT l.`ID` FROM `locations` AS l WHERE NOT EXISTS (SELECT * FROM `guesses` AS g WHERE g.`token` = ? AND g.`locationID` = l.`ID`) ORDER BY RAND() LIMIT 1', [$token]);
+		return getDatabase()->getRow('SELECT l.`ID` FROM `locations` AS l WHERE `enabled` = 1 AND NOT EXISTS (SELECT * FROM `guesses` AS g WHERE g.`token` = ? AND g.`locationID` = l.`ID`) ORDER BY RAND() LIMIT 1', [$token]);
 	}
 
 	function getRandomStartLocation($isClassic) {
 		if ($isClassic)
-			return getDatabase()->getRow('SELECT `ID` FROM `locations_classic` ORDER BY RAND() LIMIT 1', []);
+			return getDatabase()->getRow('SELECT `ID` FROM `locations_classic` WHERE `enabled` = 1 ORDER BY RAND() LIMIT 1', []);
 		
-		return getDatabase()->getRow('SELECT `ID` FROM `locations` ORDER BY RAND() LIMIT 1', []);
+		return getDatabase()->getRow('SELECT `ID` FROM `locations` WHERE `enabled` = 1 ORDER BY RAND() LIMIT 1', []);
 	}
 
 	function pointDistance($x1, $y1, $x2, $y2) {
@@ -133,7 +133,7 @@
 
 			$location = null;
 			if ($session->gameMode === '1')
-				$location = getDatabase()->getRow('SELECT l.`name`, l.`lat`, l.`lng`, z.`name` as `zoneName` FROM `locations` AS l JOIN `zones` AS z ON (z.`ID` = l.`zone`) WHERE l.`ID` = ?', [$session->currentID]);
+				$location = getDatabase()->getRow('SELECT l.`name`, l.`lat`, l.`lng`, l.`map`, z.`name` as `zoneName` FROM `locations` AS l JOIN `zones` AS z ON (z.`ID` = l.`zone`) WHERE l.`ID` = ?', [$session->currentID]);
 			else if ($session->gameMode === '2')
 				$location = getDatabase()->getRow('SELECT l.`name`, l.`lat`, l.`lng`, z.`name` as `zoneName` FROM `locations_classic` AS l JOIN `zones_classic` AS z ON (z.`ID` = l.`zone`) WHERE l.`ID` = ?', [$session->currentID]);
 			else
@@ -145,21 +145,30 @@
 			$playerLives = intval($session->lives);
 			$playerScore = intval($session->score);
 
-			$distance = pointDistance($location->lat, $location->lng, $request->lat, $request->lng);
+			$mapID = isset($location->map) ? intval($location->map) : null;
 
 			$result = 0; // Red.
-			$distFactor = 1 - ($distance / GUESS_THRESHOLD);
-			if ($distFactor > 0) {
-				if ($distFactor < BOD_RADIUS) {
-					$result = 1; // Yellow.
-				} else {
-					$result = 2; // Green.
-					$distFactor = 1;
-				}
+			$distFactor = 0;
 
-				$playerScore++;
+			if ($mapID === null || $mapID === $request->mapID) {
+				$distance = pointDistance($location->lat, $location->lng, $request->lat, $request->lng);
+
+				$result = 0; // Red.
+				$distFactor = 1 - ($distance / GUESS_THRESHOLD);
+				if ($distFactor > 0) {
+					if ($distFactor < BOD_RADIUS) {
+						$result = 1; // Yellow.
+					} else {
+						$result = 2; // Green.
+						$distFactor = 1;
+					}
+
+					$playerScore++;
+				} else {
+					$distFactor = 0;
+					$playerLives--;
+				}
 			} else {
-				$distFactor = 0;
 				$playerLives--;
 			}
 
@@ -171,6 +180,10 @@
 			$response->score = $playerScore;
 			$response->lat = $location->lat;
 			$response->lng = $location->lng;
+
+			if ($mapID !== null)
+				$response->mapID = $mapID;
+
 			$response->locName = $location->name;
 			$response->zoneName = $location->zoneName;
 			$response->result = $result;

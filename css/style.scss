@@ -218,6 +218,61 @@ body {
 		right: 0;
 		bottom: 0;
 
+		#map-selector {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			display: flex;
+			z-index: 999;
+
+			.map-selector-icon {
+				width: 95px;
+				height: 95px;
+				background-repeat: no-repeat;
+				background-position: center center;
+				position: relative;
+				margin-right: -15px;
+
+				&-border {
+					background: url(../images/map-selector/map-icon-border.png);
+					background-repeat: no-repeat;
+					cursor: pointer;
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+				}
+
+				&.selected {
+					.map-selector-icon-border {
+						background-position-x: -95px;
+					}
+				}
+			}
+
+			&-cata {
+				background-image: url(../images/map-selector/achievment_boss_madnessofdeathwing.png);
+			}
+	
+			&-tbc {
+				background-image: url(../images/map-selector/achievement_boss_illidan.png);
+			}
+	
+			&-wod {
+				background-image: url(../images/map-selector/achievement_thenighthold_guldan.png);
+			}
+	
+			&-bfa {
+				background-image: url(../images/map-selector/achievement_boss_zuldazar_jaina.png);
+			}
+		}
+
+		.leaflet-control-container {
+			position: absolute;
+			right: 55px;
+		}
+
 		.game-banner {
 			position: absolute;
 			left: 0;
@@ -290,7 +345,6 @@ body {
 				opacity: 0;
 				transition: opacity 400ms;
 				position: absolute;
-				background: rgb(0, 29, 40);
 
 				#game-button-next {
 					display: none;

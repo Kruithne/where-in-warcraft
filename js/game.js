@@ -77,6 +77,45 @@ const sendRequest = async (req) => {
 	return json;
 };
 
+const MAPS = {
+	'cata': {
+		dir: 'tiles',
+		maxZoom: 7,
+		background: 'rgb(0, 29, 40)',
+		mapID: 0
+	},
+	'classic': {
+		dir: 'tiles_classic',
+		maxZoom: 6,
+		background: 'rgb(0, 29, 40)'
+	},
+	'tbc': {
+		dir: 'tiles_tbc',
+		maxZoom: 6,
+		background: 'rgb(0, 0, 0)',
+		mapID: 1
+	},
+	'wod': {
+		dir: 'tiles_wod',
+		maxZoom: 7,
+		background: 'rgb(8, 27, 63)',
+		mapID: 2
+	},
+	'bfa': {
+		dir: 'tiles_bfa',
+		maxZoom: 7,
+		background: 'rgb(0, 29, 40)',
+		mapID: 3
+	}
+};
+
+const MAP_INDEX = new Map();
+for (const mapName in MAPS) {
+	const map = MAPS[mapName];
+	if (map.mapID !== undefined)
+		MAP_INDEX.set(map.mapID, mapName);
+}
+
 const MAX_LIVES = 3;
 const GUESS_THRESHOLD = 2.4;
 const BOD_RADIUS = 0.8;
@@ -183,12 +222,17 @@ class GameState {
 		// Disable the map, preventing further input.
 		this.ui.disableMap();
 
-		let choice = this.ui.mapMarker.getLatLng();
+		const choice = this.ui.mapMarker.getLatLng();
+		const selectedMap = this.ui.selectedMap;
 
 		let circleColour = 'blue';
 		let circleRadius = GUESS_THRESHOLD;
 
-		const res = await sendRequest({ action: 'guess', token: this.token, lat: choice.lat, lng: choice.lng });
+		const req = { action: 'guess', token: this.token, lat: choice.lat, lng: choice.lng };
+		if (selectedMap !== 'classic')
+			req.mapID = MAPS[selectedMap].mapID;
+
+		const res = await sendRequest(req);
 		const currentLocation = { lat: res.lat, lng: res.lng };
 
 		switch (res.result) {
@@ -219,6 +263,10 @@ class GameState {
 		this.playerPoints = res.score;
 		this.playerLives = res.lives;
 		this.ui.$scoreLives.textContent = res.lives;
+
+		// Load the correct map for our given answer.
+		if (res.mapID !== undefined)
+			this.ui.setSelectedMap(MAP_INDEX.get(res.mapID));
 
 		// Set the zone information on the map.
 		this.ui.setMapInfo(res.zoneName, res.locName);
@@ -268,6 +316,8 @@ class UI {
 
 		this.throttleLeaderboard = false;
 		this.isLeaderboardShown = false;
+
+		this.selectedMap = null;
 	}
 
 	_init() {
@@ -301,6 +351,21 @@ class UI {
 		// Game map info.
 		this.$infoZone = $('#game-map-info');
 
+		// Map Selection.
+		this.$mapSelector = $('#map-selector');
+		this.$mapSelectorButtons = $('.map-selector-icon', true);
+
+		for (const mapID in MAPS) {
+			const $selector = $('#map-selector-' + mapID);
+			MAPS[mapID].$selector = $selector;
+
+			if ($selector !== null)
+				$selector.addEventListener('click', (e) => {
+					this.setSelectedMap(mapID);
+					e.stopPropagation();
+				});
+		}
+
 		// Leaderboard
 		this.$buttonLeaderboard = $('#game-button-leaderboard');
 		this.$leaderboard = $('#leaderboard');
@@ -318,6 +383,41 @@ class UI {
 		// Asynchronously load smooth background images.
 		for (const $node of $('.smooth', true))
 			loadBackgroundSmooth($node);
+	}
+
+	setSelectedMap(mapID) {
+		if (this.selectedMap === mapID)
+			return;
+
+		this.selectedMap = mapID;
+
+		const selectedMap = MAPS[mapID];
+		if (mapID === 'classic') {
+			this.$mapSelector.style.display = 'none';
+		} else {
+			this.$mapSelector.style.display = 'flex';
+
+			for (const $selector of this.$mapSelectorButtons)
+				$selector.classList.remove('selected');
+
+			if (selectedMap.$selector !== null)
+				selectedMap.$selector.classList.add('selected');
+		}
+
+		this.$gameMap.style.background = selectedMap.background;
+
+		if (this.map)
+			this.map.remove();
+
+		this.map = L.map('game-map', {
+			attributionControl: false,
+			crs: L.CRS.Simple
+		});
+
+		this.resetMapZoom();
+
+		L.tileLayer('images/' + selectedMap.dir + '/{z}/{x}/{y}.png', { maxZoom: selectedMap.maxZoom, }).addTo(this.map);
+		this.map.on('click', (e) => this._onMapClick(e));
 	}
 
 	async toggleLeaderboard() {
@@ -351,20 +451,6 @@ class UI {
 			this.isLeaderboardShown = false;
 			this.$leaderboard.style.display = 'none';
 		}
-	}
-
-	_initializeMap(isClassic) {
-		this.map = L.map('game-map', {
-			attributionControl: false,
-			crs: L.CRS.Simple
-		});
-
-		this.resetMapZoom();
-		this.isClassic = isClassic;
-
-		const dir = isClassic ? 'tiles_classic' : 'tiles';
-		L.tileLayer('images/' + dir + '/{z}/{x}/{y}.png', { maxZoom: isClassic ? 6 : 7, }).addTo(this.map);
-		this.map.on('click', (e) => this._onMapClick(e));
 	}
 
 	_onMapClick(e) {
@@ -512,7 +598,8 @@ class UI {
 				this.$gameContent.style.opacity = 1;
 
 				// Initialize the guess map.
-				this._initializeMap(isClassic);
+				this.isClassic = isClassic;
+				this.setSelectedMap(isClassic ? 'classic' : 'cata');
 
 				resolve();
 			});
