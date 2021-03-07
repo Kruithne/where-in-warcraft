@@ -130,6 +130,7 @@ class GameState {
 
 		this.token = null;
 		this.isClassic = false;
+		this.gameStarted = false;
 	}
 	
 	get isAlive() {
@@ -164,6 +165,7 @@ class GameState {
 		this.currentLocation = res.location;
 
 		this.nextRound();
+		this.gameStarted = true;
 	}
 
 	reset() {
@@ -321,6 +323,7 @@ class UI {
 		this.isLeaderboardShown = false;
 
 		this.selectedMap = null;
+		this.isMapShown = false;
 	}
 
 	_init() {
@@ -550,6 +553,8 @@ class UI {
 	}
 
 	showMap() {
+		this.isMapShown = true;
+
 		// Ensure the 'Re-view' location button is enabled.
 		this.$buttonViewLocation.classList.remove('disabled');
 
@@ -566,6 +571,8 @@ class UI {
 	}
 
 	hideMap() {
+		this.isMapShown = false;
+
 		// Ensure the 'Make guess' button is enabled.
 		this.$buttonViewMap.classList.remove('disabled');
 
@@ -646,6 +653,187 @@ class UI {
 			this.$gameOver.style.display = 'flex';
 			this.$gameOver.style.opacity = 1;
 		});
+	}
+}
+
+class GamepadHandler {
+	constructor(ui, state, panorama) {
+		this.ui = ui;
+		this.state = state;
+		this.panorama = panorama;
+
+		this.gamepads = new Set();
+
+		addEventListener('gamepadconnected', e => this.onGamepadConnected(e));
+		addEventListener('gamepaddisconnected', e => this.onGamepadDisconnected(e));
+
+		this.isPolling = false;
+		this.updateCallback = (ts) => this.onUpdate(ts);
+
+		this.lastClickTime = 0;
+
+		this.isPanning = false;
+		this.panClientX = 0;
+		this.panClientY = 0;
+
+		this.crosshairEnabled = false;
+	}
+
+	get hasGamepads() {
+		return this.gamepads.size > 0;
+	}
+
+	initCrosshair() {
+		if (this.crosshairEnabled)
+			return;
+
+		this.crosshairEnabled = true;
+		const crosshair = this.crosshair = document.createElement('div');
+		crosshair.setAttribute('id', 'game-map-crosshair');
+		this.ui.map._container.appendChild(crosshair);
+	}
+
+	constructEvent(eventType) {
+		const event = new MouseEvent(eventType, {
+			clientX: this.panClientX,
+			clientY: this.panClientY
+		});
+
+		Object.defineProperty(event, 'target', { value: this.ui.map._container });
+		return event;
+	}
+
+	onUpdate(ts) {
+		if (!this.hasGamepads) {
+			this.isPolling = false;
+			return;
+		}
+
+		const gamepads = navigator.getGamepads();
+		for (const gamepadIndex of this.gamepads) {
+			const gamepad = gamepads[gamepadIndex];
+
+			if (!this.state.gameStarted)
+				continue;
+
+			const rightStickHor = gamepad.axes[0];
+			if (Math.abs(rightStickHor) >= 0.3) {
+				this.panorama.offset += 12 * -rightStickHor;
+				this.ui.$gameCanvas.style.backgroundPosition = this.panorama.offset + 'px 0';
+			}
+
+			const leftStickHor = gamepad.axes[2]; // -left, +right
+			const leftStickVer = gamepad.axes[3]; // -up, +down
+
+			if (this.ui.isMapShown && (Math.abs(leftStickHor) >= 0.15 || Math.abs(leftStickVer) >= 0.15)) {
+				if (this.isPanning) {
+					this.panClientX += -leftStickHor * 12;
+					this.panClientY += -leftStickVer * 12;
+					document.dispatchEvent(this.constructEvent('mousemove'));
+				} else {
+					this.panClientX = 0;
+					this.panClientY = 0;
+					this.isPanning = true;
+					this.initCrosshair();
+					this.ui.map._container.dispatchEvent(this.constructEvent('mousedown'));
+				}
+			} else if (this.isPanning) {
+				this.isPanning = false;
+				document.dispatchEvent(this.constructEvent('mouseup'));
+			}
+
+			if (ts - this.lastClickTime > 300) {
+				const rightStickVer = gamepad.axes[1];
+				if (Math.abs(rightStickVer) >= 0.3) {
+					if (rightStickVer > 0)
+						document.querySelector('.leaflet-control-zoom-out').click();
+					else
+						document.querySelector('.leaflet-control-zoom-in').click();
+
+					this.lastClickTime = ts;
+				}
+
+				if (gamepad.buttons[1].pressed) { // B
+					if (this.ui.isMapShown && !this.isPanning && this.crosshair) {
+						const map = this.ui.map._container;
+						const bounds = this.crosshair.getBoundingClientRect();
+						this.panClientX = bounds.left + (bounds.width / 2);
+						this.panClientY = bounds.top + (bounds.height / 2);
+
+						this.ui.map.dragging._draggable._moved = false;
+
+						map.dispatchEvent(this.constructEvent('click'));
+						this.lastClickTime = ts;
+					}
+				}
+
+				if (gamepad.buttons[9].pressed) { // Start/Menu button.
+					this.ui.toggleLeaderboard();
+					this.lastClickTime = ts;
+				}
+
+				if (gamepad.buttons[5].pressed) {
+					const selected = document.querySelector('.map-selector-icon.selected');
+					if (selected) {
+						const next = selected.nextElementSibling;
+						if (next)
+							next.click();
+						else
+							selected.parentNode.firstElementChild.click();
+					}
+
+					this.lastClickTime = ts;
+				} else if (gamepad.buttons[4].pressed) {
+					const selected = document.querySelector('.map-selector-icon.selected');
+					if (selected) {
+						const prev = selected.previousElementSibling;
+						if (prev)
+							prev.click();
+						else
+							selected.parentNode.lastElementChild.click();
+
+						this.lastClickTime = ts;
+					}
+				}
+	
+				if (gamepad.buttons[0].pressed) {
+					if (this.ui.$buttonNextRound.style.display !== 'none') {
+						this.state.nextRound();
+						this.lastClickTime = ts;
+					} else if (this.ui.mapMarker) {
+						this.ui.$buttonSubmitGuess.classList.add('disabled');
+						this.state.processGuess();
+						this.lastClickTime = ts;
+					}
+				}
+
+				if (gamepad.buttons[2].pressed) {
+					if (this.ui.isMapShown)
+						this.ui.hideMap();
+					else
+						this.ui.showMap();
+
+					this.lastClickTime = ts;
+				}
+			}
+		}
+
+		requestAnimationFrame(this.updateCallback);
+	}
+
+	onGamepadConnected(event) {
+		const gamepad = event.gamepad;
+		console.log(gamepad);
+		if (gamepad.mapping === 'standard') {
+			this.gamepads.add(gamepad.index);
+
+			if (!this.isPolling)
+				requestAnimationFrame(this.updateCallback);
+		}
+	}
+
+	onGamepadDisconnected(event) {
+		this.gamepads.delete(event.gamepad.index);
 	}
 }
 
@@ -733,20 +921,23 @@ class Panorama {
 	const ui = new UI();
 	const panorama = new Panorama(ui);
 	const state = new GameState(ui, panorama);
+	new GamepadHandler(ui, state, panorama);
 
-		// Add button handlers.
-		onButtonClick(ui.$buttonViewMap, () => ui.showMap());
-		onButtonClick(ui.$buttonPlay, () => loadGame(false));
-		onButtonClick(ui.$buttonPlayClassic, () => loadGame(true));
-		onButtonClick(ui.$buttonViewLocation, () => ui.hideMap());
-		onButtonClick(ui.$buttonNextRound, () => state.nextRound());
-		onButtonClick(ui.$buttonReplay, () => state.restartGame());
-		onButtonClick(ui.$buttonSubmitGuess, () => state.processGuess());
-		onButtonClick(ui.$buttonSubmitScore, () => ui.showSendScore(), false);
-		onButtonClick(ui.$buttonCancelScore, () => ui.hideSendScore(), false);
-		onButtonClick(ui.$buttonSendScore, () => state.sendScore());
-		onButtonClick(ui.$buttonLeaderboard, () => ui.toggleLeaderboard(), false);
+	window.ui = ui;
 
-		// Preload loading graphic.
-		preloadImage('images/zeppy.png');
+	// Add button handlers.
+	onButtonClick(ui.$buttonViewMap, () => ui.showMap());
+	onButtonClick(ui.$buttonPlay, () => loadGame(false));
+	onButtonClick(ui.$buttonPlayClassic, () => loadGame(true));
+	onButtonClick(ui.$buttonViewLocation, () => ui.hideMap());
+	onButtonClick(ui.$buttonNextRound, () => state.nextRound());
+	onButtonClick(ui.$buttonReplay, () => state.restartGame());
+	onButtonClick(ui.$buttonSubmitGuess, () => state.processGuess());
+	onButtonClick(ui.$buttonSubmitScore, () => ui.showSendScore(), false);
+	onButtonClick(ui.$buttonCancelScore, () => ui.hideSendScore(), false);
+	onButtonClick(ui.$buttonSendScore, () => state.sendScore());
+	onButtonClick(ui.$buttonLeaderboard, () => ui.toggleLeaderboard(), false);
+
+	// Preload loading graphic.
+	preloadImage('images/zeppy.png');
 })();

@@ -346,6 +346,17 @@ body {
 				transition: opacity 400ms;
 				position: absolute;
 
+				&-crosshair {
+					width: 182px;
+					height: 182px;
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					z-index: 999;
+					background: url(../images/gamepad-crosshair.png) no-repeat center;
+				}
+
 				#game-button-next {
 					display: none;
 				}
