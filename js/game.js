@@ -41,13 +41,16 @@ const pointDistance = (x1, y1, x2, y2) => {
 };
 
 const onButtonClick = (node, callback, disable = true) => {
-	const wrapper = () => {
+	const wrapper = event => {
 		if (!node.classList.contains('disabled')) {
 			if (disable)
 				node.classList.add('disabled');
 
 			callback();
 		}
+
+		event.preventDefault();
+		event.stopPropagation();
 
 		return false;
 	};
