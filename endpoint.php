@@ -51,15 +51,36 @@
 		$action = $request->action;
 
 		if ($action === 'init') {
-			$token = UUID::generate_v4();
-
 			$gameMode = 1;
 			
 			// Classic.
 			if ($request->mode === 2)
 				$gameMode = 2;
 
-			$location = getRandomStartLocation($gameMode === 2)->ID;
+			$token = null;
+			$location = null;
+
+			if ($request->resumeToken !== null && is_string($request->resumeToken) && strlen($request->resumeToken) === 36) {
+				$session = getDatabase()->getRow('SELECT `gameMode`, `lives`, `currentID`, `score` FROM `sessions` WHERE `token` = ?', [$request->resumeToken]);
+				if ($session !== false) {
+					$lives = intval($session->lives);
+					if ($lives > 0) {
+						$token = $request->resumeToken;
+						$gameMode = $session->gameMode;
+						$location = $session->currentID;
+
+						$response->resumeLives = $lives;
+						$response->resumeScore = intval($session->score);
+					}
+				}
+			}
+
+			if ($token === null)
+				$token = UUID::generate_v4();
+
+			if ($location === null)
+				$location = getRandomStartLocation($gameMode === 2)->ID;
+
 			$response->token = $token;
 			$response->location = $location;
 
@@ -75,6 +96,17 @@
 				$response->players = getDatabase()->getAll('SELECT `score`, `accuracy`, `name` FROM `scoreboard` ORDER BY `score` DESC, `accuracy` DESC LIMIT 25', []);
 			} else if ($request->mode === 2) {
 				$response->players = getDatabase()->getAll('SELECT `score`, `accuracy`, `name` FROM `scoreboard_classic` ORDER BY `score` DESC, `accuracy` DESC LIMIT 25', []);
+			}
+		} else if ($action === 'resume')  {			
+			if ($request->token === null || !is_string($request->token) || strlen($request->token) !== 36)
+				throw new Exception('Invalid token.');
+
+			$session = getDatabase()->getRow('SELECT `gameMode`, `lives` FROM `sessions` WHERE `token` = ?', [$request->token]);
+			if ($session !== false && intval($session->lives) > 0) {
+				$response->mode = intval($session->gameMode);
+				$response->resume = true;
+			} else {
+				$response->resume = false;
 			}
 		} else if ($action === 'submit') {
 			if ($request->token === null || !is_string($request->token) || strlen($request->token) !== 36)

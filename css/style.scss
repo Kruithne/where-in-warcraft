@@ -104,6 +104,14 @@ body {
 		}
 
 		#front-text {
+			&-continue {
+				font-size: 0.5em;
+				margin-top: 10px;
+				display: none;
+				text-decoration: underline;
+				cursor: pointer;
+			}
+
 			position: absolute;
 			top: 278px;
 			left: 28px;

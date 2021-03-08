@@ -148,11 +148,15 @@ class GameState {
 		return Math.ceil(sum / this.playerGuesses.length);
 	}
 
-	async startGame(isClassic, isRestart = false) {
+	async startGame(isClassic, resumeToken = null, isRestart = false) {
 		this.isClassic = isClassic;
 		this.reset();
 
 		const initReq = { action: 'init', mode: isClassic ? 2 : 1 };
+
+		if (resumeToken !== null)
+			initReq.resumeToken = resumeToken;
+
 		if (this.token !== null)
 			initReq.clearToken = this.token;
 
@@ -161,11 +165,32 @@ class GameState {
 
 		const res = await sendRequest(initReq);
 
+		localStorage.setItem('wiw-session', res.token);
+
+		if (res.resumeLives !== undefined && res.resumeScore !== undefined) {
+			this.playerLives = res.resumeLives;
+			this.playerPoints = res.resumeScore;
+
+			this.currentRound =this.playerPoints + (MAX_LIVES - this.playerLives);
+
+			this.playerGuesses = JSON.parse(localStorage.getItem('wiw-local-guesses'));
+			if (!Array.isArray(this.playerGuesses))
+				this.playerGuesses = [];
+
+			this.updateDisplay();
+		}
+
 		this.token = res.token;
 		this.currentLocation = res.location;
 
 		this.nextRound();
 		this.gameStarted = true;
+	}
+
+	updateDisplay() {
+		this.ui.$scoreLives.textContent = this.playerLives;
+		this.ui.$scoreRounds.textContent = this.currentRound;
+		this.ui.$scoreAccuracy.textContent = this.playerAccuracy;
 	}
 
 	reset() {
@@ -176,9 +201,7 @@ class GameState {
 		this.playerLives = MAX_LIVES;
 		this.playerGuesses = [];
 
-		this.ui.$scoreLives.textContent = this.playerLives;
-		this.ui.$scoreRounds.textContent = this.currentRound;
-		this.ui.$scoreAccuracy.textContent = this.playerAccuracy;
+		this.updateDisplay();
 	}
 
 	async restartGame() {
@@ -193,7 +216,7 @@ class GameState {
 
 		this.ui.$gameOver.style.display = 'none';
 
-		this.startGame(this.isClassic, true);
+		this.startGame(this.isClassic, null, true);
 	}
 
 	async nextRound() {
@@ -219,6 +242,7 @@ class GameState {
 			this.ui.$buttonSubmitGuess.style.display = 'block';
 			this.ui.$buttonSubmitGuess.classList.add('disabled');
 		} else {
+			localStorage.deleteItem('wiw-session');
 			this.ui.showGameOver(this.isAlive, this.playerPoints);
 		}
 	}
@@ -278,6 +302,7 @@ class GameState {
 
 		// Store the new distance for client-side accuracy.
 		this.playerGuesses.push(res.distPct);
+		localStorage.setItem('wiw-local-guesses', JSON.stringify(this.playerGuesses));
 		this.ui.$scoreAccuracy.textContent = this.playerAccuracy;
 
 		// Show a circle where the actual answer was and pan to it.
@@ -913,9 +938,9 @@ class Panorama {
 	});
 
 	// Asynchronously load location data from server.
-	const loadGame = (isClassic) => {
+	const loadGame = (isClassic, resumeToken = null) => {
 		panorama.setMode(isClassic);
-		state.startGame(isClassic);
+		state.startGame(isClassic, resumeToken);
 	}
 
 	const ui = new UI();
@@ -923,7 +948,16 @@ class Panorama {
 	const state = new GameState(ui, panorama);
 	new GamepadHandler(ui, state, panorama);
 
-	window.ui = ui;
+	const lastSession = localStorage.getItem('wiw-session');
+	if (lastSession !== null) {
+		sendRequest({ action: 'resume', token: lastSession }).then(res => {
+			if (res.resume === true) {
+				const $continue = $('#front-text-continue');
+				$continue.style.display = 'block';
+				$continue.addEventListener('click', () => loadGame(res.mode === 2, lastSession));
+			}
+		});
+	}
 
 	// Add button handlers.
 	onButtonClick(ui.$buttonViewMap, () => ui.showMap());
