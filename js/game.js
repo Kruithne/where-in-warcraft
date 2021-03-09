@@ -242,7 +242,7 @@ class GameState {
 			this.ui.$buttonSubmitGuess.style.display = 'block';
 			this.ui.$buttonSubmitGuess.classList.add('disabled');
 		} else {
-			localStorage.deleteItem('wiw-session');
+			localStorage.removeItem('wiw-session');
 			this.ui.showGameOver(this.isAlive, this.playerPoints);
 		}
 	}
